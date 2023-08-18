@@ -1,5 +1,7 @@
 import logging
+from entities.dbconnection import addUserToGame, createNewGame, createNewGameAndAddUser, updateGameRoundCount
 from entities.ensureUserExists import ensureUserExists
+from entities.getLatestGame import getLatestGame
 
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
@@ -159,18 +161,72 @@ async def quit_handler(message: Message, state: FSMContext) -> None:
         reply_markup=ReplyKeyboardRemove(),
     )
 
-
+# 1) дізнатися останню гру getLatestGame
+# 2) якщо остання гра завершена або її немає:
+# 2.1) стейт=починаю гру await state.set_state
+# 2.2) запитати кількість раундів await message.answer
+# 3) інакше, якщо гра вже йде: сказати юзеру, щоб почекав await message.answer
+# 4) інакше, якщо гра набирає нових юзерів — додати гравця до гри *addUserToGame
 async def begin_game_handler(message: Message, state: FSMContext) -> None:
+ # Дізнатися поточний стан гри
+    current_state = await state.get_state()
+    latestGame = getLatestGame()
+    if current_state.gameState == GameState.BeginGame:
+        # Створити нову гру і доєднати користувача до нової гри
+        # TODO: Some logic...
+
+        userText = message.md_text
+        if not userText.isdigit():
+            await message.answer(
+                "Введи число!",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        numberOfRounds=int(userText)
+        updateGameRoundCount(latestGame.id, numberOfRounds)
+
+        await message.answer(
+            f"Створюю нову гру на {numberOfRounds} раундів.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+
+        current_state = GameState.BeginGame
+        await state.set_state(current_state)
+        return
+
+async def lobby_handler(message: Message, state: FSMContext) -> None:
     pass
 
 
-def lobby_handler(message: Message, state: FSMContext) -> None:
-    pass
+async def game_create_handler(message: Message, state: FSMContext) -> None:
+    latestGame = getLatestGame()
+    current_state = await state.get_state()
+    if current_state.gameState == GameState.NotStarted:
+        current_state = await state.set_state(GameState.BeginGame)
+        createNewGameAndAddUser(message.from_user.id)
+    
+        await message.answer(
+        "Скільки буде раундів?",
+        reply_markup=ReplyKeyboardRemove(),    
+        )
 
-
-def game_create_handler(message: Message, state: FSMContext) -> None:
-    pass
-
+    # Перевірити, чи є вже гра
+    #if fake_games:
+        # Доєднати користувача до існуючої гри
+        # TODO: Some logic...
+    if current_state.gameState in [GameState.InRound, GameState.RoundResult, GameState.GameResult]:  
+        await message.answer(
+        "Зачекай, поки почнеться нова гра",
+        reply_markup=ReplyKeyboardRemove(),    
+        )
+        return
+    if current_state.gameState == GameState.Lobby:
+        await message.answer(
+            "Доєдную тебе до існуючої гри.",
+            reply_markup=ReplyKeyboardRemove()),
+        addUserToGame(message.from_user.id, latestGame.id)
+        
+#        await state.set_state(current_state)
+        return
 
 def in_round_handler(message: Message, state: FSMContext) -> None:
     pass
