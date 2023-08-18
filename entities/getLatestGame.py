@@ -37,6 +37,12 @@ def getLatestGame():
         JOIN User U ON U.Id = UT.UserId
     """)
     users = list(map(createUserFromRawData, rawData))
+    groupedUsers = {}
+    for user in users:
+        if not user.teamId in groupedUsers.keys():
+            groupedUsers[user.teamId] = []
+        groupedUsers[user.teamId].append(user.user)
+    groupedUsersList = list(groupedUsers.values())
     game.rounds = rounds
-    game.users = users
+    game.users = groupedUsersList
     return game
