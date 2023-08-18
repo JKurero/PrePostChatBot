@@ -168,9 +168,37 @@ async def quit_handler(message: Message, state: FSMContext) -> None:
 # 3) інакше, якщо гра вже йде: сказати юзеру, щоб почекав await message.answer
 # 4) інакше, якщо гра набирає нових юзерів — додати гравця до гри *addUserToGame
 async def begin_game_handler(message: Message, state: FSMContext) -> None:
-   
-    latestGame = getLatestGame()
  # Дізнатися поточний стан гри
+    current_state = await state.get_state()
+    latestGame = getLatestGame()
+    if current_state.gameState == GameState.BeginGame:
+        # Створити нову гру і доєднати користувача до нової гри
+        # TODO: Some logic...
+
+        userText = message.md_text
+        if not userText.isdigit():
+            await message.answer(
+                "Введи число!",
+                reply_markup=ReplyKeyboardRemove(),
+            )
+        numberOfRounds=int(userText)
+        updateGameRoundCount(latestGame.id, numberOfRounds)
+
+        await message.answer(
+            f"Створюю нову гру на {numberOfRounds} раундів.",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+
+        current_state = GameState.BeginGame
+        await state.set_state(current_state)
+        return
+
+async def lobby_handler(message: Message, state: FSMContext) -> None:
+    pass
+
+
+async def game_create_handler(message: Message, state: FSMContext) -> None:
+    latestGame = getLatestGame()
     current_state = await state.get_state()
     if current_state.gameState == GameState.NotStarted:
         current_state = await state.set_state(GameState.BeginGame)
@@ -199,36 +227,6 @@ async def begin_game_handler(message: Message, state: FSMContext) -> None:
         
 #        await state.set_state(current_state)
         return
-    if current_state.gameState == GameState.BeginGame:
-        # Створити нову гру і доєднати користувача до нової гри
-        # TODO: Some logic...
-
-        userText = message.md_text
-        if not userText.isdigit():
-            await message.answer(
-                "Введи число!",
-                reply_markup=ReplyKeyboardRemove(),
-            )
-        numberOfRounds=int(userText)
-        updateGameRoundCount(latestGame.id, numberOfRounds)
-
-        await message.answer(
-            f"Створюю нову гру на {numberOfRounds} раундів.",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-
-        current_state = GameState.BeginGame
-        await state.set_state(current_state)
-        return
-
-
-def lobby_handler(message: Message, state: FSMContext) -> None:
-    pass
-
-
-def game_create_handler(message: Message, state: FSMContext) -> None:
-    pass
-
 
 def in_round_handler(message: Message, state: FSMContext) -> None:
     pass
