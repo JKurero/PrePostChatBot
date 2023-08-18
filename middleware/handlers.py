@@ -208,6 +208,7 @@ async def game_create_handler(message: Message, state: FSMContext) -> None:
         "Скільки буде раундів?",
         reply_markup=ReplyKeyboardRemove(),    
         )
+        return
 
     # Перевірити, чи є вже гра
     #if fake_games:
