@@ -1,5 +1,5 @@
 from dbconnection import queryToDatabase
-from entities.entities import Game, Round, User, UserToTeam
+from entities import Game, Round, User, UserToTeam
 
 def createRoundFromRawData(raw):
     return Round(raw['Id'], raw['QuestionId'], None, raw['GameId'], None, raw['Time'])
@@ -16,7 +16,7 @@ def getLatestGame():
         GameState,
         NumberOfRounds,
         IsTest
-        FROM Game ORDER BY Time DESC LIMIT(1)""")
+        FROM Game ORDER BY Time DESC LIMIT 1""")
     if len(rawData) == 0:
         return None
     x = rawData[0]
@@ -32,9 +32,10 @@ def getLatestGame():
             U.Name,
             U.TelegramUserId,
             T.Id AS TeamId
-        FROM Team T WHERE GameId={game.id}
+        FROM Team T
         JOIN UserToTeam UT ON UT.TeamId = T.Id
         JOIN User U ON U.Id = UT.UserId
+        WHERE GameId={game.id}
     """)
     users = list(map(createUserFromRawData, rawData))
     groupedUsers = {}
