@@ -2,6 +2,44 @@ from datetime import datetime
 
 from middleware.router import GameState
 
+def StateToInt(state):
+    if state == GameState.NotStarted:
+        return 1
+    elif state == GameState.GameCreate:
+        return 2
+    elif state == GameState.BeginGame:
+        return 3
+    elif state == GameState.Lobby:
+        return 4
+    elif state == GameState.Start:
+        return 5
+    elif state == GameState.InRound:
+        return 6
+    elif state == GameState.RoundResult:
+        return 7
+    elif state == GameState.GameResult:
+        return 8
+    return 0
+
+def IntToState(index):
+    if index == 1:
+        return GameState.NotStarted
+    elif index == 2:
+        return GameState.GameCreate
+    elif index == 3:
+        return GameState.BeginGame
+    elif index == 4:
+        return GameState.Lobby
+    elif index == 5:
+        return GameState.Start
+    elif index == 6:
+        return GameState.InRound
+    elif index == 7:
+        return GameState.RoundResult
+    elif index == 8:
+        return GameState.GameResult
+    return None
+
 # користувач бота (гравець)
 class User:    
     def __init__(self, id: int, telegramUserId: int, name: str):
@@ -44,7 +82,7 @@ class Game:
         self.time = time
         self.initiatingUserId = initiatingUserId
         self.initiatingUser = initiatingUser
-        self.gameState = GameState(gameState)
+        self.gameState = IntToState(gameState)
         self.numberOfRounds = numberOfRounds
         self.isTest = isTest
         self.rounds = []
