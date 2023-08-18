@@ -51,10 +51,19 @@ def addQuestion(questionText, answers):
         query = f"INSERT INTO Answer(Id, QuestionId, Text, IsCorrect) VALUES(NULL, {questionId}, {repr(answerText)}, {1 if answerIsCorrect else 0})"
         queryToDatabase(query, isWrite=True)
 
+def externalToInternalUserId(userId):
+    query = f"SELECT Id FROM User WHERE TelegramUserId = {userId}"
+    rawData = queryToDatabase(query)
+    if len(rawData) == 0:
+        return None
+    return rawData[0]['Id']
+
 def createNewGame(userId):
-    query = f"INSERT INTO Game(Time, GameState, InitiatingUserId, NumberOfRounds, IsTest) VALUES (GETDATE(), {GameState.GameCreate.value}, {userId}, 0, 1)"
+    internalUserId = externalToInternalUserId(userId)
+    query = f"INSERT INTO Game(Time, GameState, InitiatingUserId, NumberOfRounds, IsTest) VALUES (GETDATE(), {GameState.GameCreate.value}, {internalUserId}, 0, 1)"
     queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
 
 def addUserToGame(userId, gameId):
-    query = f"INSERT INTO UserToGame(UserId, GameId, Score, Place) VALUES ({userId}, {gameId}, 0, 0)"
+    internalUserId = externalToInternalUserId(userId)
+    query = f"INSERT INTO UserToGame(UserId, GameId, Score, Place) VALUES ({internalUserId}, {gameId}, 0, 0)"
     queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
