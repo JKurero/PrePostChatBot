@@ -1,14 +1,17 @@
 import pymysql
 from entities import Question, Answer
+from middleware.router import GameState
 
-def queryToDatabase(sql, isWrite = False):
+def queryToDatabase(sql, isWrite = False, needsIdOfInsertedEntity = True):
     connection=pymysql.connect(host="45.129.97.37", port=3306, user="aumann", password="aumann_game", database="pp_aumann", cursorclass=pymysql.cursors.DictCursor)
     with connection.cursor() as cursor:
         cursor.execute(sql)
         rows = cursor.fetchall()
         if isWrite:
             connection.commit()
-            return cursor.lastrowid
+            if needsIdOfInsertedEntity:
+                return cursor.lastrowid
+            return None
         return rows
 
 def getQuestions():
@@ -47,3 +50,11 @@ def addQuestion(questionText, answers):
             answerText = answerText[:100]
         query = f"INSERT INTO Answer(Id, QuestionId, Text, IsCorrect) VALUES(NULL, {questionId}, {repr(answerText)}, {1 if answerIsCorrect else 0})"
         queryToDatabase(query, isWrite=True)
+
+def createNewGame(userId):
+    query = f"INSERT INTO Game(Time, GameState, InitiatingUserId, NumberOfRounds, IsTest) VALUES (GETDATE(), {GameState.GameCreate.value}, {userId}, 0, 1)"
+    queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
+
+def addUserToGame(userId, gameId):
+    query = f"INSERT INTO UserToGame(UserId, GameId, Score, Place) VALUES ({userId}, {gameId}, 0, 0)"
+    queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
