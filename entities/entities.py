@@ -45,6 +45,8 @@ class Game:
         self.gameState = gameState
         self.numberOfRounds = numberOfRounds
         self.isTest = isTest
+        self.rounds = []
+        self.users = []
 
 # раунд гри (одне запитання, зігране в певний момент часу)
 class Round:
