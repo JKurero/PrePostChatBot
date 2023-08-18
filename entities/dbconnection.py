@@ -61,9 +61,17 @@ def externalToInternalUserId(userId):
 def createNewGame(userId):
     internalUserId = externalToInternalUserId(userId)
     query = f"INSERT INTO Game(Time, GameState, InitiatingUserId, NumberOfRounds, IsTest) VALUES (GETDATE(), {GameState.GameCreate.value}, {internalUserId}, 0, 1)"
-    queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
+    return queryToDatabase(query, isWrite=True)
 
 def addUserToGame(userId, gameId):
     internalUserId = externalToInternalUserId(userId)
     query = f"INSERT INTO UserToGame(UserId, GameId, Score, Place) VALUES ({internalUserId}, {gameId}, 0, 0)"
+    queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
+
+def createNewGameAndAddUser(userId):
+    gameId = createNewGame(userId)
+    addUserToGame(userId, gameId)
+
+def updateGameRoundCount(gameId, newRoundCount):
+    query = f"UPDATE Game SET NumberOfRounds={newRoundCount} WHERE Id={gameId}"
     queryToDatabase(query, isWrite=True, needsIdOfInsertedEntity=False)
