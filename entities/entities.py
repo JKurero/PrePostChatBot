@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from middleware.router import GameState
+
 # користувач бота (гравець)
 class User:    
     def __init__(self, id: int, telegramUserId: int, name: str):
@@ -42,7 +44,7 @@ class Game:
         self.time = time
         self.initiatingUserId = initiatingUserId
         self.initiatingUser = initiatingUser
-        self.gameState = gameState
+        self.gameState = GameState(gameState)
         self.numberOfRounds = numberOfRounds
         self.isTest = isTest
         self.rounds = []
